@@ -4,7 +4,7 @@
 
 ### 1. API Key 认证（数据收集端）
 - [x] 改用 `Authorization: Bearer <api_key>` header，不再用 query parameter
-- [ ] 使用 `secrets.compare_digest()` 防止时序攻击
+- [x] 使用 `secrets.compare_digest()` 防止时序攻击
 - [ ] API key 用 SHA-256 哈希存储
 
 ### 2. Web 登录认证

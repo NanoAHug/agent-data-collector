@@ -1,21 +1,18 @@
-"""
-数据库配置
-"""
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
 
-DATABASE_URL = "sqlite:///./data/conversations.db"
+from app.config import get_settings
+from app.db.base import Base
+
+settings = get_settings()
 
 engine = create_engine(
-    DATABASE_URL, 
-    connect_args={"check_same_thread": False}
+    settings.database_url,
+    connect_args={"check_same_thread": False} if "sqlite" in settings.database_url else {}
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-Base = declarative_base()
 
 
 def get_db():
@@ -27,5 +24,6 @@ def get_db():
 
 
 def init_db():
-    os.makedirs("data", exist_ok=True)
+    if "sqlite" in settings.database_url:
+        os.makedirs("data", exist_ok=True)
     Base.metadata.create_all(bind=engine)
