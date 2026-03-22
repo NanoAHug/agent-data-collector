@@ -46,7 +46,8 @@ def set_env_permanently(token):
 
 
 def create_env_file(token):
-    env_path = os.path.join(os.path.dirname(__file__), ENV_FILE)
+    project_root = os.path.dirname(os.path.dirname(__file__))
+    env_path = os.path.join(project_root, ENV_FILE)
     with open(env_path, "w") as f:
         f.write(f"{ENV_VAR_NAME}={token}\n")
     return env_path

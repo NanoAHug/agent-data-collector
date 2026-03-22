@@ -1,9 +1,7 @@
-"""
-数据库模型
-"""
 from sqlalchemy import Column, Integer, String, Text, DateTime
 from sqlalchemy.sql import func
-from database import Base
+
+from app.db.base import Base
 
 
 class Conversation(Base):

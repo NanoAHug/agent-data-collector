@@ -1,6 +1,3 @@
-"""
-Pydantic数据模型
-"""
 from pydantic import BaseModel
 from typing import List, Dict, Optional
 from datetime import datetime
