@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Collector</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'VT323', monospace;
+            background: #0a0a0a;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 16px 16px;
+            padding: 24px;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+        .scanline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0,0,0,0.1) 0px,
+                rgba(0,0,0,0.1) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            z-index: 1000;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #222;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .logo-icon {
+            font-size: 24px;
+            letter-spacing: -2px;
+        }
+        h1 {
+            font-family: 'Press Start 2P', cursive;
+            color: #fff;
+            font-size: 16px;
+            letter-spacing: 1px;
+        }
+        .logout-btn {
+            background: transparent;
+            border: 2px solid #333;
+            color: #888;
+            padding: 8px 16px;
+            font-family: 'VT323', monospace;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .logout-btn:hover {
+            border-color: #fff;
+            color: #fff;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        .stat-card {
+            background: #111;
+            border: 2px solid #222;
+            padding: 20px 24px;
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #333;
+        }
+        .stat-card h3 {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 8px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        .stat-card .number {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 28px;
+            color: #fff;
+        }
+        .filters {
+            background: #111;
+            border: 2px solid #222;
+            padding: 20px 24px;
+            margin-bottom: 24px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+        }
+        .filters label {
+            color: #666;
+            font-size: 14px;
+            letter-spacing: 1px;
+            margin-right: -8px;
+        }
+        .filters input {
+            padding: 10px 14px;
+            background: #0a0a0a;
+            border: 2px solid #333;
+            color: #fff;
+            font-family: 'VT323', monospace;
+            font-size: 18px;
+            transition: all 0.2s;
+        }
+        .filters input:focus {
+            outline: none;
+            border-color: #fff;
+        }
+        .filters input::placeholder {
+            color: #444;
+        }
+        .filters button {
+            padding: 10px 20px;
+            background: #fff;
+            color: #0a0a0a;
+            border: none;
+            font-family: 'VT323', monospace;
+            font-size: 18px;
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: all 0.15s;
+        }
+        .filters button:hover {
+            background: #ccc;
+            box-shadow: 2px 2px 0 #333;
+            transform: translate(-1px, -1px);
+        }
+        .filters button.secondary {
+            background: transparent;
+            border: 2px solid #333;
+            color: #888;
+        }
+        .filters button.secondary:hover {
+            border-color: #fff;
+            color: #fff;
+            background: transparent;
+        }
+        .table-container {
+            background: #111;
+            border: 2px solid #222;
+            overflow: hidden;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid #1a1a1a;
+        }
+        th {
+            background: #0a0a0a;
+            color: #666;
+            font-size: 14px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-weight: normal;
+        }
+        td {
+            font-size: 18px;
+            color: #ccc;
+        }
+        tr:hover td {
+            background: #0f0f0f;
+            color: #fff;
+        }
+        .message {
+            max-width: 280px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: #888;
+        }
+        .id-cell {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            color: #666;
+        }
+        .time-cell {
+            color: #555;
+            font-size: 16px;
+        }
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+        .actions button {
+            padding: 6px 12px;
+            font-family: 'VT323', monospace;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.15s;
+            letter-spacing: 1px;
+        }
+        .btn-view {
+            background: transparent;
+            border: 1px solid #444;
+            color: #888;
+        }
+        .btn-view:hover {
+            border-color: #fff;
+            color: #fff;
+        }
+        .btn-delete {
+            background: transparent;
+            border: 1px solid #400;
+            color: #800;
+        }
+        .btn-delete:hover {
+            background: #400;
+            color: #fff;
+        }
+        .pagination {
+            margin-top: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 16px;
+        }
+        .pagination button {
+            padding: 10px 20px;
+            background: #111;
+            border: 2px solid #333;
+            color: #888;
+            font-family: 'VT323', monospace;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .pagination button:hover:not(:disabled) {
+            border-color: #fff;
+            color: #fff;
+        }
+        .pagination button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        .pagination span {
+            color: #666;
+            font-size: 16px;
+            letter-spacing: 1px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 1001;
+            padding: 40px;
+            overflow-y: auto;
+        }
+        .modal-content {
+            background: #111;
+            border: 2px solid #333;
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            border-bottom: 2px solid #222;
+            background: #0a0a0a;
+        }
+        .modal-header h2 {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 14px;
+            color: #fff;
+            letter-spacing: 1px;
+        }
+        .close-btn {
+            font-size: 32px;
+            cursor: pointer;
+            color: #666;
+            line-height: 1;
+            transition: color 0.2s;
+        }
+        .close-btn:hover {
+            color: #fff;
+        }
+        .modal-body {
+            padding: 24px;
+        }
+        .detail-item {
+            margin-bottom: 20px;
+        }
+        .detail-item label {
+            display: block;
+            color: #666;
+            font-size: 14px;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+        .detail-item > div {
+            color: #ccc;
+            font-size: 18px;
+        }
+        .detail-item pre {
+            background: #0a0a0a;
+            border: 1px solid #222;
+            padding: 16px;
+            color: #aaa;
+            font-family: 'VT323', monospace;
+            font-size: 16px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #444;
+        }
+        .empty-state span {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 16px;
+        }
+        .empty-state p {
+            font-size: 20px;
+            letter-spacing: 2px;
+        }
+        @media (max-width: 768px) {
+            body {
+                padding: 16px;
+            }
+            header {
+                flex-direction: column;
+                gap: 16px;
+            }
+            .filters {
+                flex-direction: column;
+            }
+            .filters input {
+                width: 100%;
+            }
+            th, td {
+                padding: 10px 12px;
+                font-size: 14px;
+            }
+            .message {
+                max-width: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="scanline"></div>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <span class="logo-icon">[]</span>
+                <h1>DATA COLLECTOR</h1>
+            </div>
+            <button class="logout-btn" onclick="logout()">LOGOUT</button>
+        </header>
+        
+        <div class="stats" id="stats">
+            <div class="stat-card">
+                <h3>Total</h3>
+                <div class="number" id="total">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Today</h3>
+                <div class="number" id="today">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Sessions</h3>
+                <div class="number" id="sessions">-</div>
+            </div>
+        </div>
+
+        <div class="filters">
+            <label>SESSION:</label>
+            <input type="text" id="sessionFilter" placeholder="session id">
+            <label>FROM:</label>
+            <input type="date" id="dateFrom">
+            <label>TO:</label>
+            <input type="date" id="dateTo">
+            <button onclick="loadConversations()">QUERY</button>
+            <button class="secondary" onclick="resetFilters()">RESET</button>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Session</th>
+                        <th>User Input</th>
+                        <th>Response</th>
+                        <th>Time</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="conversations"></tbody>
+            </table>
+        </div>
+
+        <div class="pagination">
+            <button id="prevBtn" onclick="prevPage()">PREV</button>
+            <span id="pageInfo"></span>
+            <button id="nextBtn" onclick="nextPage()">NEXT</button>
+        </div>
+    </div>
+
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>CONVERSATION DETAIL</h2>
+                <span class="close-btn" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 0;
+        const pageSize = 20;
+        let totalItems = 0;
+
+        async function loadStats() {
+            const response = await fetch('/api/stats');
+            const stats = await response.json();
+            document.getElementById('total').textContent = stats.total_conversations.toLocaleString();
+            document.getElementById('today').textContent = stats.today_conversations.toLocaleString();
+            document.getElementById('sessions').textContent = stats.unique_sessions.toLocaleString();
+        }
+
+        async function loadConversations() {
+            const sessionId = document.getElementById('sessionFilter').value;
+            const dateFrom = document.getElementById('dateFrom').value;
+            const dateTo = document.getElementById('dateTo').value;
+
+            let url = `/api/conversations?skip=${currentPage * pageSize}&limit=${pageSize}`;
+            if (sessionId) url += `&session_id=${sessionId}`;
+            if (dateFrom) url += `&date_from=${dateFrom}`;
+            if (dateTo) url += `&date_to=${dateTo}`;
+
+            const response = await fetch(url);
+            const data = await response.json();
+            totalItems = data.total;
+
+            const tbody = document.getElementById('conversations');
+            
+            if (data.items.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6">
+                            <div class="empty-state">
+                                <span>[ ]</span>
+                                <p>NO DATA FOUND</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            } else {
+                tbody.innerHTML = data.items.map(item => `
+                    <tr>
+                        <td class="id-cell">#${item.id}</td>
+                        <td class="id-cell">${item.session_id.substring(0, 8)}...</td>
+                        <td class="message">${escapeHtml(item.user_input)}</td>
+                        <td class="message">${escapeHtml(item.assistant_response)}</td>
+                        <td class="time-cell">${formatTime(item.created_at)}</td>
+                        <td>
+                            <div class="actions">
+                                <button class="btn-view" onclick="viewDetail(${item.id})">VIEW</button>
+                                <button class="btn-delete" onclick="deleteConversation(${item.id})">DEL</button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+            updatePagination();
+        }
+
+        function formatTime(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleString('en-US', {
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        async function viewDetail(id) {
+            const response = await fetch(`/api/conversations/${id}`);
+            const item = await response.json();
+
+            const modalBody = document.getElementById('modalBody');
+            modalBody.innerHTML = `
+                <div class="detail-item">
+                    <label>ID</label>
+                    <div>#${item.id}</div>
+                </div>
+                <div class="detail-item">
+                    <label>Session ID</label>
+                    <div>${item.session_id}</div>
+                </div>
+                <div class="detail-item">
+                    <label>Timestamp</label>
+                    <div>${item.timestamp}</div>
+                </div>
+                <div class="detail-item">
+                    <label>User Input</label>
+                    <pre>${escapeHtml(item.user_input)}</pre>
+                </div>
+                <div class="detail-item">
+                    <label>Assistant Response</label>
+                    <pre>${escapeHtml(item.assistant_response)}</pre>
+                </div>
+                <div class="detail-item">
+                    <label>Context Messages</label>
+                    <pre>${JSON.stringify(item.context_messages, null, 2)}</pre>
+                </div>
+                <div class="detail-item">
+                    <label>Metadata</label>
+                    <pre>${JSON.stringify(item.metadata, null, 2)}</pre>
+                </div>
+                <div class="detail-item">
+                    <label>Created At</label>
+                    <div>${new Date(item.created_at).toLocaleString('en-US')}</div>
+                </div>
+            `;
+
+            document.getElementById('modal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        async function deleteConversation(id) {
+            if (!confirm('Delete this conversation?')) return;
+
+            await fetch(`/api/conversations/${id}`, { method: 'DELETE' });
+            loadConversations();
+            loadStats();
+        }
+
+        function updatePagination() {
+            const totalPages = Math.ceil(totalItems / pageSize) || 1;
+            document.getElementById('pageInfo').textContent = 
+                `PAGE ${currentPage + 1} / ${totalPages} (${totalItems} records)`;
+            document.getElementById('prevBtn').disabled = currentPage === 0;
+            document.getElementById('nextBtn').disabled = currentPage >= totalPages - 1;
+        }
+
+        function prevPage() {
+            if (currentPage > 0) {
+                currentPage--;
+                loadConversations();
+            }
+        }
+
+        function nextPage() {
+            const totalPages = Math.ceil(totalItems / pageSize);
+            if (currentPage < totalPages - 1) {
+                currentPage++;
+                loadConversations();
+            }
+        }
+
+        function resetFilters() {
+            document.getElementById('sessionFilter').value = '';
+            document.getElementById('dateFrom').value = '';
+            document.getElementById('dateTo').value = '';
+            currentPage = 0;
+            loadConversations();
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function logout() {
+            fetch('/logout', { method: 'POST' }).then(() => {
+                window.location.href = '/login';
+            });
+        }
+
+        window.onload = function() {
+            loadStats();
+            loadConversations();
+        };
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('modal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

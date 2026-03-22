@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Collector - Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'VT323', monospace;
+            background: #0a0a0a;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 20px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #e0e0e0;
+        }
+        .login-container {
+            background: #111;
+            padding: 48px 40px;
+            border: 2px solid #333;
+            box-shadow: 
+                0 0 0 4px #0a0a0a,
+                8px 8px 0 0 #000,
+                inset 0 0 20px rgba(255,255,255,0.02);
+            width: 100%;
+            max-width: 420px;
+            position: relative;
+        }
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            height: 4px;
+            background: repeating-linear-gradient(
+                90deg,
+                #fff 0px,
+                #fff 4px,
+                transparent 4px,
+                transparent 8px
+            );
+        }
+        .pixel-icon {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .pixel-icon span {
+            font-size: 48px;
+            letter-spacing: -4px;
+        }
+        h1 {
+            font-family: 'Press Start 2P', cursive;
+            text-align: center;
+            color: #fff;
+            margin-bottom: 32px;
+            font-size: 14px;
+            letter-spacing: 1px;
+            text-shadow: 2px 2px 0 #333;
+        }
+        .form-group {
+            margin-bottom: 24px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #888;
+            font-size: 18px;
+            letter-spacing: 2px;
+        }
+        input[type="password"] {
+            width: 100%;
+            padding: 14px 16px;
+            background: #0a0a0a;
+            border: 2px solid #333;
+            color: #fff;
+            font-family: 'VT323', monospace;
+            font-size: 20px;
+            letter-spacing: 2px;
+            transition: all 0.2s;
+        }
+        input[type="password"]:focus {
+            outline: none;
+            border-color: #fff;
+            box-shadow: 0 0 0 2px rgba(255,255,255,0.1);
+        }
+        input[type="password"]::placeholder {
+            color: #444;
+        }
+        button {
+            width: 100%;
+            padding: 16px;
+            background: #fff;
+            color: #0a0a0a;
+            border: none;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 12px;
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: all 0.15s;
+            position: relative;
+        }
+        button:hover {
+            background: #ccc;
+            box-shadow: 4px 4px 0 #333;
+            transform: translate(-2px, -2px);
+        }
+        button:active {
+            transform: translate(0, 0);
+            box-shadow: none;
+        }
+        .error {
+            background: #200;
+            border: 2px solid #600;
+            color: #f88;
+            padding: 12px;
+            font-size: 16px;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+        }
+        .scanline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0,0,0,0.15) 0px,
+                rgba(0,0,0,0.15) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            z-index: 1000;
+        }
+        .version {
+            text-align: center;
+            margin-top: 24px;
+            color: #444;
+            font-size: 14px;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
+    <div class="scanline"></div>
+    <div class="login-container">
+        <div class="pixel-icon">
+            <span>[][][]</span>
+        </div>
+        <h1>DATA COLLECTOR</h1>
+        <div class="error" id="error"></div>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="password">> ACCESS CODE</label>
+                <input type="password" id="password" name="password" placeholder="********" required autocomplete="off">
+            </div>
+            <button type="submit">ENTER</button>
+        </form>
+        <div class="version">v1.0.0</div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('error');
+            
+            try {
+                const response = await fetch(`/login?password=${encodeURIComponent(password)}`, {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    window.location.href = '/';
+                } else {
+                    errorDiv.textContent = '> ACCESS DENIED';
+                    errorDiv.style.display = 'block';
+                }
+            } catch (err) {
+                errorDiv.textContent = '> SYSTEM ERROR';
+                errorDiv.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>
